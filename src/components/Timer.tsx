@@ -2,19 +2,33 @@ import React, { useState, useEffect } from 'react';
 
 const INITIAL_TIME = 25 * 60; // 25分
 
+// Timerコンポーネント
 const Timer: React.FC = () => {
+  // 時間[秒]
   const [time, setTime] = useState(INITIAL_TIME);
+  // 動作中フラグ
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
-    if (isRunning && time > 0) {
+    // タイマー開始
+    if (isRunning)
+    {
       intervalId = setInterval(() => {
-        setTime((prevTime) => prevTime - 1);
+        setTime((prevTime) => {
+          const nextTime = prevTime - 1;
+          if (nextTime <= 0) 
+          {
+            clearInterval(intervalId);
+            return 0;
+          }
+          return nextTime;
+        });
       }, 1000);
     }
+    // タイマー停止
     return () => clearInterval(intervalId);
-  }, [isRunning, time]);
+  }, [isRunning]);
 
   const startTimer = () => setIsRunning(true);
   const pauseTimer = () => setIsRunning(false);
