@@ -24,7 +24,7 @@ const Timer: React.FC = () => {
     if (timerState.isRunning)
     {
       intervalId = setInterval(() => {
-        setTimerState(prevState => {
+        setTimerState((prevState: TimerState) => {
           const prevTime = prevState.seconds;
           const nextTime = prevTime - 1;
           if (nextTime <= 0) 
@@ -32,8 +32,9 @@ const Timer: React.FC = () => {
             // タイマー終了
             return {
               ...prevState,
-              seconds: 0,
-              isRunning: false
+              seconds: prevState.mode === 'work' ? BREAK_TIME : WORK_TIME,  // 次のモードに切り替え
+              mode: prevState.mode === 'work' ? 'break' : 'work',          // モードを切り替え
+              isRunning: false,
             }
           }
           return {
@@ -45,7 +46,7 @@ const Timer: React.FC = () => {
     }
     // タイマー停止
     return () => clearInterval(intervalId);
-  }, [timerState]);
+  }, [timerState.isRunning]);
 
   const startTimer = () => setTimerState(prevState => ({
     ...prevState,
@@ -57,7 +58,7 @@ const Timer: React.FC = () => {
   }));
   const resetTimer = () => setTimerState(prevState => ({
     ...prevState,
-    soconds: WORK_TIME,
+    seconds: WORK_TIME,
     isRunning: false
   }));
 
