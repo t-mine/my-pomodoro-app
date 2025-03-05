@@ -1,41 +1,65 @@
 import React, { useState, useEffect } from 'react';
 
-const INITIAL_TIME = 25 * 60; // 25分
+const WORK_TIME = 25 * 60; // 25分
+const BREAK_TIME = 5 * 60; // 5分
+
+interface TimerState {
+  seconds: number;
+  isRunning: boolean;
+  mode: 'work' | 'break';
+}
 
 // Timerコンポーネント
 const Timer: React.FC = () => {
-  // 時間[秒]
-  const [time, setTime] = useState(INITIAL_TIME);
-  // 動作中フラグ
-  const [isRunning, setIsRunning] = useState(false);
+  // タイマーステート
+  const [timerState, setTimerState] = useState<TimerState>({
+    seconds: 25 * 60,   // 初期の秒数
+    isRunning: false,  // 初期状態でタイマーは停止している
+    mode: 'work',  // 初期モードは「work」
+  });
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
     // タイマー開始
-    if (isRunning)
+    if (timerState.isRunning)
     {
       intervalId = setInterval(() => {
-        setTime((prevTime) => {
+        setTimerState(prevState => {
+          const prevTime = prevState.seconds;
           const nextTime = prevTime - 1;
           if (nextTime <= 0) 
           {
-            clearInterval(intervalId);
-            return 0;
+            // タイマー終了
+            return {
+              ...prevState,
+              seconds: 0,
+              isRunning: false
+            }
           }
-          return nextTime;
+          return {
+            ...prevState,
+            seconds: nextTime
+          }
         });
       }, 1000);
     }
     // タイマー停止
     return () => clearInterval(intervalId);
-  }, [isRunning]);
+  }, [timerState]);
 
-  const startTimer = () => setIsRunning(true);
-  const pauseTimer = () => setIsRunning(false);
-  const resetTimer = () => {
-    setIsRunning(false);
-    setTime(INITIAL_TIME);
-  };
+  const startTimer = () => setTimerState(prevState => ({
+    ...prevState,
+    isRunning: true
+  }));
+  const pauseTimer = () => setTimerState(prevState => ({
+    ...prevState,
+    isRunning: false
+  }));
+  const resetTimer = () => setTimerState(prevState => ({
+    ...prevState,
+    soconds: WORK_TIME,
+    isRunning: false
+  }));
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -45,9 +69,9 @@ const Timer: React.FC = () => {
 
   return (
     <div className="text-center">
-      <div className="text-6xl font-bold mb-4">{formatTime(time)}</div>
+      <div className="text-6xl font-bold mb-4">{formatTime(timerState.seconds)}</div>
       <div className="space-x-2">
-        {!isRunning ? (
+        {!timerState.isRunning ? (
           <button onClick={startTimer} className="bg-green-500 text-white px-4 py-2 rounded">
             開始
           </button>
