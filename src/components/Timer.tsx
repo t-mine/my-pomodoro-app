@@ -15,12 +15,14 @@ interface SettingsState {
 
 // Timerコンポーネント
 const Timer: React.FC = () => {
+
   // 設定ステート
   const [setting, setSetting] = useState<SettingsState>({
     workDuration: 10,
     breakDuration: 5,
     goalPomodoros: 2
   });
+
   // タイマーステート
   const [timerState, setTimerState] = useState<TimerState>({
     remainingTime: setting.workDuration,
@@ -37,13 +39,13 @@ const Timer: React.FC = () => {
     // タイマー開始
     const intervalId = setInterval(() => {
       setTimerState((prevState: TimerState) => {
-
         // 残り時間が無い場合、かつ、ゴールポモドーロ数に到達していない場合
         if (prevState.remainingTime === 0 && prevState.completedPomodoros < setting.goalPomodoros) {
           // 完了ポモドーロ数
           const completedPomodoros = prevState.mode === 'work' ? prevState.completedPomodoros + 1 : prevState.completedPomodoros
+          // 完了フラグ
           const isCompleted = completedPomodoros === setting.goalPomodoros;
-          // モード切替、workの場合は完了ポモドーロ数を+1
+          // タイマーステートを更新
           return {
             ...prevState,
             remainingTime: 
@@ -54,11 +56,11 @@ const Timer: React.FC = () => {
                   : setting.workDuration,
             isRunning: !isCompleted,
             mode: 
-            isCompleted
-              ? prevState.mode
-              : prevState.mode === 'work' 
-                ? 'break' 
-                : 'work',
+              isCompleted
+                ? prevState.mode
+                : prevState.mode === 'work' 
+                  ? 'break' 
+                  : 'work',
             completedPomodoros: completedPomodoros
           }
         }
