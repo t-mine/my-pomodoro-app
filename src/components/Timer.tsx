@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTimer } from 'react-timer-hook';
 
 interface TimerState {
   remainingTime: number;
@@ -30,81 +31,63 @@ const Timer: React.FC = () => {
     mode: 'work',
     completedPomodoros: 0,
   });
-    
-  useEffect(() => {
-    // 停止の場合、何もしない
-    if (!timerState.isRunning) return;
-    // 残り時間が無い場合、何もしない
-    if (timerState.remainingTime === 0) return;
-    // タイマー開始
-    const intervalId = setInterval(() => {
-      setTimerState((prevState: TimerState) => {
-        // 残り時間が無い場合、かつ、ゴールポモドーロ数に到達していない場合
-        if (prevState.remainingTime === 0 && prevState.completedPomodoros < setting.goalPomodoros) {
-          // 完了ポモドーロ数
-          const completedPomodoros = prevState.mode === 'work' ? prevState.completedPomodoros + 1 : prevState.completedPomodoros
-          // 完了フラグ
-          const isCompleted = completedPomodoros === setting.goalPomodoros;
-          // タイマーステートを更新
-          return {
-            ...prevState,
-            remainingTime: 
-              isCompleted 
-                ? 0
-                : prevState.mode === 'work' 
-                  ? setting.breakDuration 
-                  : setting.workDuration,
-            isRunning: !isCompleted,
-            mode: 
-              isCompleted
-                ? prevState.mode
-                : prevState.mode === 'work' 
-                  ? 'break' 
-                  : 'work',
-            completedPomodoros: completedPomodoros
-          }
-        }
-        // 残り時間を1秒減らす
+
+  const getTimerDuration = () => {
+    return timerState.mode === "work"
+      ? setting.workDuration 
+      : setting.breakDuration
+  };
+  const getExpiryDateFromDuration = (durationSeconds: number): Date => {
+    return new Date(Date.now() + durationSeconds * 1000);
+  };
+  const handleExpire = () => {
+    if (timerState.mode === "work") {
+      const newSetCount = timerState.completedPomodoros + 1;
+      setTimerState((prevState)=>{
         return {
           ...prevState,
-          remainingTime: prevState.remainingTime - 1
+          mode: "break",
+          completedPomodoros: newSetCount
         }
       });
-    }, 1000);
-    // timerState.isRunning変更時にタイマー停止
-    return () => clearInterval(intervalId);
-  }, [timerState.isRunning]);
+      restart(getExpiryDateFromDuration(setting.breakDuration), false);
+    } else {
+      setTimerState((prevState)=>{
+        return {
+          ...prevState,
+          mode: "work",
+        }
+      });
+      restart(getExpiryDateFromDuration(setting.workDuration), false);
+    }
+  };
 
-  const startTimer = () => setTimerState(prevState => ({
-    ...prevState,
-    isRunning: true
-  }));
-  const pauseTimer = () => setTimerState(prevState => ({
-    ...prevState,
-    isRunning: false
-  }));
-  const resetTimer = () => setTimerState(prevState => ({
-    ...prevState,
-    remainingTime: setting.workDuration,
-    isRunning: false
-  }));
+  const { seconds, minutes, isRunning, start, pause, restart } = useTimer({
+    expiryTimestamp: getExpiryDateFromDuration(getTimerDuration()),
+    autoStart: false,
+    onExpire: () => handleExpire(),
+  });
 
-  const formatTime = (remainingTime: number) => {
-    const mins = Math.floor(remainingTime / 60);
-    const secs = remainingTime % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  const resetTimer = () => {
+    restart(getExpiryDateFromDuration(setting.workDuration), false)
+  }
+
+  const formatTime = (m: number, s: number) => {
+    const mm = m.toString().padStart(2, "0");
+    const ss = s.toString().padStart(2, "0");
+    return `${mm}:${ss}`;
   };
 
   return (
     <div className="text-center">
-      <div className="text-6xl font-bold mb-4">{formatTime(timerState.remainingTime)}</div>
+      <div className="text-6xl font-bold mb-4">{formatTime(minutes, seconds)}</div>
       <div className="space-x-2">
         {!timerState.isRunning ? (
-          <button onClick={startTimer} className="bg-green-500 text-white px-4 py-2 rounded">
+          <button onClick={start} className="bg-green-500 text-white px-4 py-2 rounded">
             開始
           </button>
         ) : (
-          <button onClick={pauseTimer} className="bg-yellow-500 text-white px-4 py-2 rounded">
+          <button onClick={pause} className="bg-yellow-500 text-white px-4 py-2 rounded">
             一時停止
           </button>
         )}
