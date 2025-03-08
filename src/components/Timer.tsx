@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTimer } from 'react-timer-hook';
 
-interface TimerState {
-  remainingTime: number;
-  isRunning: boolean;
+interface PomodoroState {
   mode: 'work' | 'break';
-  completedPomodoros: number;
+  completedCount: number;
 }
 
 interface SettingsState {
@@ -25,34 +23,32 @@ const Timer: React.FC = () => {
   });
 
   // タイマーステート
-  const [timerState, setTimerState] = useState<TimerState>({
-    remainingTime: setting.workDuration,
-    isRunning: false,
+  const [pomodoroState, setPomodoroState] = useState<PomodoroState>({
     mode: 'work',
-    completedPomodoros: 0,
+    completedCount: 0,
   });
 
   const getTimerDuration = () => {
-    return timerState.mode === "work"
+    return pomodoroState.mode === "work"
       ? setting.workDuration 
       : setting.breakDuration
   };
   const getExpiryDateFromDuration = (durationSeconds: number): Date => {
     return new Date(Date.now() + durationSeconds * 1000);
   };
-  const handleExpire = () => {
-    if (timerState.mode === "work") {
-      const newSetCount = timerState.completedPomodoros + 1;
-      setTimerState((prevState)=>{
+  const onExpire = () => {
+    if (pomodoroState.mode === "work") {
+      const newSetCount = pomodoroState.completedCount + 1;
+      setPomodoroState((prevState)=>{
         return {
           ...prevState,
           mode: "break",
-          completedPomodoros: newSetCount
+          completedCount: newSetCount
         }
       });
       restart(getExpiryDateFromDuration(setting.breakDuration), false);
     } else {
-      setTimerState((prevState)=>{
+      setPomodoroState((prevState)=>{
         return {
           ...prevState,
           mode: "work",
@@ -65,7 +61,7 @@ const Timer: React.FC = () => {
   const { seconds, minutes, isRunning, start, pause, restart } = useTimer({
     expiryTimestamp: getExpiryDateFromDuration(getTimerDuration()),
     autoStart: false,
-    onExpire: () => handleExpire(),
+    onExpire: () => onExpire(),
   });
 
   const resetTimer = () => {
@@ -79,22 +75,27 @@ const Timer: React.FC = () => {
   };
 
   return (
-    <div className="text-center">
-      <div className="text-6xl font-bold mb-4">{formatTime(minutes, seconds)}</div>
-      <div className="space-x-2">
-        {!timerState.isRunning ? (
-          <button onClick={start} className="bg-green-500 text-white px-4 py-2 rounded">
-            開始
+    <div className="h-screen w-screen flex flex-col justify-center items-center bg-gray-800">
+      <div className="text-center">
+        {/* 時間 */}
+        <div className="text-8xl font-bold mb-4 text-white">{formatTime(minutes, seconds)}</div>
+        {/* ボタン */}
+        <div className="space-x-2">
+          {!isRunning ? (
+            <button onClick={start} className="bg-teal-700 text-white w-[7.5rem] px-4 py-2 rounded">
+              start
+            </button>
+          ) : (
+            <button onClick={pause} className="bg-amber-700 text-white w-[7.5rem] px-4 py-2 rounded">
+              stop
+            </button>
+          )}
+          <button onClick={resetTimer} className="bg-rose-700 text-white w-[7.5rem] px-4 py-2 rounded">
+            reset
           </button>
-        ) : (
-          <button onClick={pause} className="bg-yellow-500 text-white px-4 py-2 rounded">
-            一時停止
-          </button>
-        )}
-        <button onClick={resetTimer} className="bg-red-500 text-white px-4 py-2 rounded">
-          リセット
-        </button>
-        <div>完了ポモドーロ数 : {timerState.completedPomodoros}</div>
+        </div>
+        {/* 完了ポモドーロ数 */}
+        <div className="mt-4 text-white">completed : {pomodoroState.completedCount} / {setting.goalPomodoros}</div>
       </div>
     </div>
   );

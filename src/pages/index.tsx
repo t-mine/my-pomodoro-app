@@ -4,8 +4,7 @@ import Timer from '../components/Timer';
 
 const Home: React.FC = () => {
   return (
-    <div className="container mx-auto p-4">
-      <Header />
+    <div>
       <main>
         <Timer />
       </main>
