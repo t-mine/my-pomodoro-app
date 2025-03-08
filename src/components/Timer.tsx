@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState} from 'react';
 import { useTimer } from 'react-timer-hook';
 
 interface PomodoroState {
@@ -24,7 +24,7 @@ const Timer: React.FC = () => {
     isAutoStart: false
   });
 
-  // pomodor state
+  // pomodoro state
   const [pomodoroState, setPomodoroState] = useState<PomodoroState>({
     mode: 'work',
     completedCount: 0,
@@ -55,10 +55,12 @@ const Timer: React.FC = () => {
       }
       // 休憩開始
       setPomodoroState((prevState)=>({...prevState, mode: "break", completedCount: completedCount}));
+      // restartはイベントハンドラ以外ではsetTimeoutを使用しないと動作しない
       setTimeout(() => restart(getExpiryDateFromDuration(setting.breakDuration), setting.isAutoStart),1);
     } else {
       // 休憩終了
       setPomodoroState((prevState) => ({ ...prevState, mode: "work" }));
+      // restartはイベントハンドラ以外ではsetTimeoutを使用しないと動作しない
       setTimeout(() => restart(getExpiryDateFromDuration(setting.workDuration), setting.isAutoStart),1);
     }
   };
