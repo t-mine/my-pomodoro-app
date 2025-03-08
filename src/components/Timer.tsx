@@ -45,23 +45,22 @@ const Timer: React.FC = () => {
 
   // onExpire
   const onExpire = () => {
-    // 作業終了の場合
-    if (pomodoroState.mode === "work") {
-      const completedCount = pomodoroState.completedCount + 1;
-      // 目標ポモドーロ数に達している場合、達成ポモドーロ数のみ更新
-      if (completedCount === setting.goalPomodoros) {
-        setPomodoroState((prevState)=>({...prevState, completedCount: completedCount, mode: "done"}));
-        return;
-      }
-      // 休憩開始
-      setPomodoroState((prevState)=>({...prevState, mode: "break", completedCount: completedCount}));
+    const isWorkMode = pomodoroState.mode === "work";
+    const completedCount = isWorkMode ? pomodoroState.completedCount + 1 : pomodoroState.completedCount;
+    const nextMode = isWorkMode
+      ? completedCount === setting.goalPomodoros ? "done" : "break"
+      : "work";
+
+    setPomodoroState((prevState)=>({
+      ...prevState, 
+      mode: nextMode, 
+      completedCount
+    }));
+
+    if (nextMode != "done") {
+      const duration = isWorkMode ? setting.breakDuration : setting.workDuration;
       // restartはイベントハンドラ以外ではsetTimeoutを使用しないと動作しない
-      setTimeout(() => restart(getExpiryDateFromDuration(setting.breakDuration), setting.isAutoStart),1);
-    } else {
-      // 休憩終了
-      setPomodoroState((prevState) => ({ ...prevState, mode: "work" }));
-      // restartはイベントハンドラ以外ではsetTimeoutを使用しないと動作しない
-      setTimeout(() => restart(getExpiryDateFromDuration(setting.workDuration), setting.isAutoStart),1);
+      setTimeout(() => restart(getExpiryDateFromDuration(duration), setting.isAutoStart),1);
     }
   };
 
