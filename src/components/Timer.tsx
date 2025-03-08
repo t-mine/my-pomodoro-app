@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTimer } from 'react-timer-hook';
 
 interface PomodoroState {
-  mode: 'work' | 'break';
+  mode: 'work' | 'break' | 'done';
   completedCount: number;
   isPaused: boolean;
 }
@@ -43,21 +43,21 @@ const Timer: React.FC = () => {
     return new Date(Date.now() + durationSeconds * 1000);
   };
 
+  // onExpire
   const onExpire = () => {
     // 作業終了の場合
     if (pomodoroState.mode === "work") {
       const completedCount = pomodoroState.completedCount + 1;
       // 目標ポモドーロ数に達している場合、達成ポモドーロ数のみ更新
       if (completedCount === setting.goalPomodoros) {
-        setPomodoroState((prevState)=>({...prevState, completedCount: completedCount}));
+        setPomodoroState((prevState)=>({...prevState, completedCount: completedCount, mode: "done"}));
         return;
       }
       // 休憩開始
       setPomodoroState((prevState)=>({...prevState, mode: "break", completedCount: completedCount}));
       setTimeout(() => restart(getExpiryDateFromDuration(setting.breakDuration), setting.isAutoStart),1);
     } else {
-      // 休憩終了の場合
-      // 作業開始
+      // 休憩終了
       setPomodoroState((prevState) => ({ ...prevState, mode: "work" }));
       setTimeout(() => restart(getExpiryDateFromDuration(setting.workDuration), setting.isAutoStart),1);
     }
@@ -72,19 +72,19 @@ const Timer: React.FC = () => {
 
   // onReset
   const onReset = () => {
-    setPomodoroState((prevState)=>({...prevState, mode: "work", completedCount: 0}));
+    setPomodoroState((prevState)=>({...prevState, mode: "work", completedCount: 0, isPaused: false}));
     restart(getExpiryDateFromDuration(setting.workDuration), false)
   }
 
   // onPause
   const onPause = () => {
-    pomodoroState.isPaused = true;
+    setPomodoroState((prevState) => ({ ...prevState, isPaused: true }));
     pause();
   }
 
   // onResume
   const onResume = () => {
-    pomodoroState.isPaused = false;
+    setPomodoroState((prevState) => ({ ...prevState, isPaused: false }));
     resume();
   }
 
@@ -105,7 +105,7 @@ const Timer: React.FC = () => {
           {!isRunning ? (
             <button onClick={pomodoroState.isPaused ? onResume : start} 
               className="bg-teal-700 text-white w-[7.5rem] px-4 py-2 rounded disabled:bg-gray-600 disabled:cursor-not-allowed" 
-              disabled={pomodoroState.completedCount === setting.goalPomodoros}>
+              disabled={pomodoroState.mode === "done"}>
               {pomodoroState.isPaused ? "resume" : "start"}
             </button>
           ) : (
