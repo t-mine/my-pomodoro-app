@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTimer } from 'react-timer-hook';
 
 interface PomodoroState {
@@ -95,6 +95,45 @@ const Timer: React.FC = () => {
     const ss = s.toString().padStart(2, "0");
     return `${mm}:${ss}`;
   };
+
+  // request notification permission
+  const requestNotificationPermission = () => {
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          console.log("通知が許可されました！");
+        }
+      });
+    }
+  };
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
+  // send notification
+  const sendNotification = (title: string, body: string) => {
+    if (Notification.permission === "granted") {
+      new Notification(title, {
+        body: body,
+        //icon: "/icon.png",
+      });
+    }
+  };
+  useEffect(() => {
+    if (pomodoroState.completedCount === 0) return;
+    
+    switch(pomodoroState.mode) {
+      case "work":
+        sendNotification("pomodoro timer", "end breaking");
+        break;
+      case "break":
+        sendNotification("pomodoro timer", "end working");
+        break;
+      case "done":
+        sendNotification("pomodoro timer", "complete!");
+        break;
+    }
+  }, [pomodoroState.mode]);
 
   return (
     <div className="h-screen w-screen flex flex-col justify-center items-center bg-gray-800">
