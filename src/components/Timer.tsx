@@ -16,7 +16,7 @@ interface SettingsState {
 
 const Timer: React.FC = () => {
 
-  // setting state
+  // state
   const [setting, setSetting] = useState<SettingsState>({
     workDuration: 10,
     breakDuration: 5,
@@ -24,27 +24,36 @@ const Timer: React.FC = () => {
     isAutoStart: false
   });
 
-  // pomodoro state
   const [pomodoroState, setPomodoroState] = useState<PomodoroState>({
     mode: 'work',
     completedCount: 0,
     isPaused: false
   });
 
-  // 作業時間 or 休憩時間を取得する
-  const getTimerDuration = () => {
+  // first render
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
+  // useTimer
+  const { seconds, minutes, isRunning, start, pause, restart, resume } = useTimer({
+    expiryTimestamp: getExpiryDateFromDuration(getTimerDuration()),
+    autoStart: false,
+    onExpire: onExpire,
+  });
+
+  // functions
+  function getTimerDuration () {
     return pomodoroState.mode === "work"
       ? setting.workDuration 
       : setting.breakDuration
   };
 
-  // react-timer-hook用のタイマー終了時間を算出
-  const getExpiryDateFromDuration = (durationSeconds : number): Date => {
+  function getExpiryDateFromDuration (durationSeconds : number): Date {
     return new Date(Date.now() + durationSeconds * 1000);
   };
 
-  // onExpire
-  const onExpire = () => {
+  function onExpire () {
     const isWorkMode = pomodoroState.mode === "work";
     const completedCount = isWorkMode ? pomodoroState.completedCount + 1 : pomodoroState.completedCount;
     const nextMode = isWorkMode
@@ -57,72 +66,15 @@ const Timer: React.FC = () => {
       completedCount
     }));
 
+    // restart
     if (nextMode != "done") {
       const duration = isWorkMode ? setting.breakDuration : setting.workDuration;
       // restartはイベントハンドラ以外ではsetTimeoutを使用しないと動作しない
       setTimeout(() => restart(getExpiryDateFromDuration(duration), setting.isAutoStart),1);
     }
-  };
 
-  // useTimer
-  const { seconds, minutes, isRunning, start, pause, restart, resume } = useTimer({
-    expiryTimestamp: getExpiryDateFromDuration(getTimerDuration()),
-    autoStart: false,
-    onExpire: onExpire,
-  });
-
-  // onReset
-  const onReset = () => {
-    setPomodoroState((prevState)=>({...prevState, mode: "work", completedCount: 0, isPaused: false}));
-    restart(getExpiryDateFromDuration(setting.workDuration), false)
-  }
-
-  // onPause
-  const onPause = () => {
-    setPomodoroState((prevState) => ({ ...prevState, isPaused: true }));
-    pause();
-  }
-
-  // onResume
-  const onResume = () => {
-    setPomodoroState((prevState) => ({ ...prevState, isPaused: false }));
-    resume();
-  }
-
-  // format time
-  const formatTime = (m: number, s: number) => {
-    const mm = m.toString().padStart(2, "0");
-    const ss = s.toString().padStart(2, "0");
-    return `${mm}:${ss}`;
-  };
-
-  // request notification permission
-  const requestNotificationPermission = () => {
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-          console.log("通知が許可されました！");
-        }
-      });
-    }
-  };
-  useEffect(() => {
-    requestNotificationPermission();
-  }, []);
-
-  // send notification
-  const sendNotification = (title: string, body: string) => {
-    if (Notification.permission === "granted") {
-      new Notification(title, {
-        body: body,
-        //icon: "/icon.png",
-      });
-    }
-  };
-  useEffect(() => {
-    if (pomodoroState.completedCount === 0) return;
-    
-    switch(pomodoroState.mode) {
+    // desktop notification
+    switch(nextMode) {
       case "work":
         sendNotification("pomodoro timer", "end breaking");
         break;
@@ -133,7 +85,47 @@ const Timer: React.FC = () => {
         sendNotification("pomodoro timer", "complete!");
         break;
     }
-  }, [pomodoroState.mode]);
+  };
+
+  function onReset () {
+    setPomodoroState((prevState)=>({...prevState, mode: "work", completedCount: 0, isPaused: false}));
+    restart(getExpiryDateFromDuration(setting.workDuration), false)
+  }
+
+  function onPause () {
+    setPomodoroState((prevState) => ({ ...prevState, isPaused: true }));
+    pause();
+  }
+
+  function onResume () {
+    setPomodoroState((prevState) => ({ ...prevState, isPaused: false }));
+    resume();
+  }
+
+  function formatTime (m: number, s: number) {
+    const mm = m.toString().padStart(2, "0");
+    const ss = s.toString().padStart(2, "0");
+    return `${mm}:${ss}`;
+  };
+
+  function requestNotificationPermission () {
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          console.log("通知が許可されました！");
+        }
+      });
+    }
+  };
+
+  function sendNotification (title: string, body: string) {
+    if (Notification.permission === "granted") {
+      new Notification(title, {
+        body: body,
+        //icon: "/icon.png",
+      });
+    }
+  };
 
   return (
     <div className="h-screen w-screen flex flex-col justify-center items-center bg-gray-800">
