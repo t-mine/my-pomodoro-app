@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTimer } from 'react-timer-hook';
+import * as notification from '../features/notification/notification'; 
 
 interface PomodoroState {
   mode: 'work' | 'break' | 'done';
@@ -16,7 +17,6 @@ interface SettingsState {
 
 const Timer: React.FC = () => {
 
-  // state
   const [setting, setSetting] = useState<SettingsState>({
     workDuration: 10,
     breakDuration: 5,
@@ -30,19 +30,16 @@ const Timer: React.FC = () => {
     isPaused: false
   });
 
-  // first render
   useEffect(() => {
-    requestNotificationPermission();
+    notification.requestNotificationPermission();
   }, []);
 
-  // useTimer
   const { seconds, minutes, isRunning, start, pause, restart, resume } = useTimer({
     expiryTimestamp: getExpiryDateFromDuration(getTimerDuration()),
     autoStart: false,
     onExpire: onExpire,
   });
 
-  // functions
   function getTimerDuration () {
     return pomodoroState.mode === "work"
       ? setting.workDuration 
@@ -74,18 +71,22 @@ const Timer: React.FC = () => {
     }
 
     // desktop notification
+    notifyModeTransition(nextMode);
+  };
+
+  function notifyModeTransition(nextMode : string) {
     switch(nextMode) {
       case "work":
-        sendNotification("pomodoro timer", "end breaking");
+        notification.sendNotification("pomodoro timer", "end breaking");
         break;
       case "break":
-        sendNotification("pomodoro timer", "end working");
+        notification.sendNotification("pomodoro timer", "end working");
         break;
       case "done":
-        sendNotification("pomodoro timer", "complete!");
+        notification.sendNotification("pomodoro timer", "complete!");
         break;
     }
-  };
+  }
 
   function onReset () {
     setPomodoroState((prevState)=>({...prevState, mode: "work", completedCount: 0, isPaused: false}));
@@ -106,25 +107,6 @@ const Timer: React.FC = () => {
     const mm = m.toString().padStart(2, "0");
     const ss = s.toString().padStart(2, "0");
     return `${mm}:${ss}`;
-  };
-
-  function requestNotificationPermission () {
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-          console.log("通知が許可されました！");
-        }
-      });
-    }
-  };
-
-  function sendNotification (title: string, body: string) {
-    if (Notification.permission === "granted") {
-      new Notification(title, {
-        body: body,
-        //icon: "/icon.png",
-      });
-    }
   };
 
   return (
