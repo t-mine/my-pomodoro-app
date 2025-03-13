@@ -77,13 +77,16 @@ const Timer: React.FC = () => {
   function notifyModeTransition(nextMode : string) {
     switch(nextMode) {
       case "work":
-        notification.sendNotification("pomodoro timer", "end breaking");
+        //notification.sendNotification("pomodoro timer", "end breaking");
+        notification.playSound();
         break;
       case "break":
-        notification.sendNotification("pomodoro timer", "end working");
+        //notification.sendNotification("pomodoro timer", "end working");
+        notification.playSound();
         break;
       case "done":
-        notification.sendNotification("pomodoro timer", "complete!");
+        //notification.sendNotification("pomodoro timer", "complete!");
+        notification.playSound();
         break;
     }
   }
