@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useTimer } from 'react-timer-hook';
 import * as notification from '../features/notification/notification'; 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 interface PomodoroState {
   mode: 'work' | 'break' | 'done';
@@ -123,19 +132,29 @@ const Timer: React.FC = () => {
             <button onClick={pomodoroState.isPaused ? onResume : start} 
               className="bg-teal-700 text-white w-[7.5rem] px-4 py-2 rounded disabled:bg-gray-600 disabled:cursor-not-allowed" 
               disabled={pomodoroState.mode === "done"}>
-              {pomodoroState.isPaused ? "resume" : "start"}
+              {pomodoroState.isPaused ? "Resume" : "Start"}
             </button>
           ) : (
             <button onClick={onPause} className="bg-amber-700 text-white w-[7.5rem] px-4 py-2 rounded">
-              stop
+              Stop
             </button>
           )}
           <button onClick={onReset} className="bg-rose-700 text-white w-[7.5rem] px-4 py-2 rounded">
-            reset
+            Reset
           </button>
         </div>
         {/* completed */}
-        <div className="mt-4 text-white">completed : {pomodoroState.completedCount} / {setting.goalPomodoros}</div>
+        <div className="mt-4 text-white">Completed pomodoros : {pomodoroState.completedCount} / {setting.goalPomodoros}</div>
+        {/* options */}
+        <Dialog>
+          <DialogTrigger className="mt-12 bg-gray-800 text-white border border-gray-700 w-[7.5rem] px-4 py-2 rounded">Options</DialogTrigger>
+          <DialogContent className="bg-gray-800 border-none">
+            <DialogHeader>
+              <DialogTitle className="text-white">Options</DialogTitle>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </div>
   );
