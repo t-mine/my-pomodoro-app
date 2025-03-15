@@ -4,12 +4,11 @@ import * as notification from '../features/notification/notification';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Switch } from "@/components/ui/switch";
 
 interface PomodoroState {
   mode: 'work' | 'break' | 'done';
@@ -121,6 +120,10 @@ const Timer: React.FC = () => {
     return `${mm}:${ss}`;
   };
 
+  function handleChange (key: keyof SettingsState, value: number | boolean) {
+    setSetting((prev) => ({ ...prev, [key]: value }));
+  };
+
   return (
     <div className="h-screen w-screen flex flex-col justify-center items-center bg-gray-800">
       <div className="text-center">
@@ -147,14 +150,56 @@ const Timer: React.FC = () => {
         <div className="mt-4 text-white">Completed pomodoros : {pomodoroState.completedCount} / {setting.goalPomodoros}</div>
         {/* options */}
         <Dialog>
-          <DialogTrigger className="mt-12 bg-gray-800 text-white border border-gray-700 w-[7.5rem] px-4 py-2 rounded">Options</DialogTrigger>
+          <DialogTrigger className="mt-12 bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 w-[7.5rem] px-4 py-2 rounded">Options</DialogTrigger>
           <DialogContent className="bg-gray-800 border-none">
             <DialogHeader>
-              <DialogTitle className="text-white">Options</DialogTitle>
+              <DialogTitle className="text-gray-300">Options</DialogTitle>
             </DialogHeader>
+            <div>
+              {/* Work Duration */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">Work Duration (minutes)</label>
+                <input
+                  type="number"
+                  value={setting.workDuration}
+                  onChange={(e) => handleChange("workDuration", Number(e.target.value))}
+                  className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Break Duration */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">Break Duration (minutes)</label>
+                <input
+                  type="number"
+                  value={setting.breakDuration}
+                  onChange={(e) => handleChange("breakDuration", Number(e.target.value))}
+                  className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Goal Pomodoros */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">Goal Pomodoros</label>
+                <input
+                  type="number"
+                  value={setting.goalPomodoros}
+                  onChange={(e) => handleChange("goalPomodoros", Number(e.target.value))}
+                  className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Auto Start */}
+              <div className="mb-4 flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-500">Auto Start</label>
+                <Switch
+                  checked={setting.isAutoStart}
+                  onCheckedChange={(checked) => handleChange("isAutoStart", checked)}
+                />
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
-
       </div>
     </div>
   );
