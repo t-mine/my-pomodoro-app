@@ -10,8 +10,11 @@ import {
 } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch";
 
+type TimerMode = 'work' | 'break' | 'done';
+type NotificationMode = 'sound'  | 'desktop';
+
 interface PomodoroState {
-  mode: 'work' | 'break' | 'done';
+  mode: TimerMode;
   completedCount: number;
   isPaused: boolean;
 }
@@ -21,6 +24,7 @@ interface SettingsState {
   breakDuration: number;
   goalPomodoros: number;
   isAutoStart: boolean;
+  notificationMode: NotificationMode
 }
 
 const Timer: React.FC = () => {
@@ -29,7 +33,8 @@ const Timer: React.FC = () => {
     workDuration: 10,
     breakDuration: 5,
     goalPomodoros: 2,
-    isAutoStart: false
+    isAutoStart: false,
+    notificationMode: 'sound'
   });
 
   const [pomodoroState, setPomodoroState] = useState<PomodoroState>({
@@ -78,23 +83,38 @@ const Timer: React.FC = () => {
       setTimeout(() => restart(getExpiryDateFromDuration(duration), setting.isAutoStart),1);
     }
 
-    // desktop notification
-    notifyModeTransition(nextMode);
+    sendNotification(setting.notificationMode, nextMode);
   };
 
-  function notifyModeTransition(nextMode : string) {
-    switch(nextMode) {
-      case "work":
-        //notification.sendNotification("pomodoro timer", "end breaking");
-        notification.playSound();
+  function sendNotification(notificationMode: NotificationMode, timerMode: TimerMode)
+  {
+    switch(notificationMode)
+    {
+      case 'sound':
+        switch(timerMode) {
+          case "work":
+            notification.playSound();
+            break;
+          case "break":
+            notification.playSound();
+            break;
+          case "done":
+            notification.playSound();
+            break;
+        }
         break;
-      case "break":
-        //notification.sendNotification("pomodoro timer", "end working");
-        notification.playSound();
-        break;
-      case "done":
-        //notification.sendNotification("pomodoro timer", "complete!");
-        notification.playSound();
+      case 'desktop':
+        switch(timerMode) {
+          case "work":
+            notification.sendNotification("pomodoro timer", "end breaking");
+            break;
+          case "break":
+            notification.sendNotification("pomodoro timer", "end working");
+            break;
+          case "done":
+            notification.sendNotification("pomodoro timer", "complete!");
+            break;
+        }
         break;
     }
   }
@@ -131,6 +151,7 @@ const Timer: React.FC = () => {
         <div className="text-8xl font-bold mb-4 text-white">{formatTime(minutes, seconds)}</div>
         {/* buttons */}
         <div className="space-x-2">
+          {/* resume button / start button / stop button */}
           {!isRunning ? (
             <button onClick={pomodoroState.isPaused ? onResume : start} 
               className="bg-teal-700 text-white w-[7.5rem] px-4 py-2 rounded disabled:bg-gray-600 disabled:cursor-not-allowed" 
@@ -142,11 +163,12 @@ const Timer: React.FC = () => {
               Stop
             </button>
           )}
+          {/* reset button */}
           <button onClick={onReset} className="bg-rose-700 text-white w-[7.5rem] px-4 py-2 rounded">
             Reset
           </button>
         </div>
-        {/* completed */}
+        {/* completed pomodoros */}
         <div className="mt-4 text-white">Completed pomodoros : {pomodoroState.completedCount} / {setting.goalPomodoros}</div>
         {/* options */}
         <Dialog>
@@ -166,7 +188,6 @@ const Timer: React.FC = () => {
                   className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-
               {/* Break Duration */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-500">Break Duration (minutes)</label>
@@ -177,7 +198,6 @@ const Timer: React.FC = () => {
                   className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-
               {/* Goal Pomodoros */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-500">Goal Pomodoros</label>
@@ -188,7 +208,6 @@ const Timer: React.FC = () => {
                   className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-
               {/* Auto Start */}
               <div className="mb-4 flex items-center justify-between">
                 <label className="text-sm font-medium text-gray-500">Auto Start</label>
