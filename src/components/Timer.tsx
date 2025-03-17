@@ -140,7 +140,7 @@ const Timer: React.FC = () => {
     return `${mm}:${ss}`;
   };
 
-  function handleChange (key: keyof SettingsState, value: number | boolean) {
+  function handleChange (key: keyof SettingsState, value: number | boolean | string) {
     setSetting((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -215,6 +215,34 @@ const Timer: React.FC = () => {
                   checked={setting.isAutoStart}
                   onCheckedChange={(checked) => handleChange("isAutoStart", checked)}
                 />
+              </div>
+              {/* Notification Mode */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">Notification Mode</label>
+                <div className="flex space-x-4 mt-2">
+                  <label className="flex items-center space-x-2 text-gray-400 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="notificationMode"
+                      value="sound"
+                      checked={setting.notificationMode === 'sound'}
+                      onChange={(e) => handleChange('notificationMode', e.target.value)}
+                      className="text-blue-500"
+                    />
+                    <span>Sound</span>
+                  </label>
+                  <label className="flex items-center space-x-2 text-gray-400 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="notificationMode"
+                      value="desktop"
+                      checked={setting.notificationMode === 'desktop'}
+                      onChange={(e) => handleChange('notificationMode', e.target.value)}
+                      className="text-blue-500"
+                    />
+                    <span>Desktop</span>
+                  </label>
+                </div>
               </div>
             </div>
           </DialogContent>
