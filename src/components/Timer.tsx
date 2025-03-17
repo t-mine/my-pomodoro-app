@@ -209,38 +209,57 @@ const Timer: React.FC = () => {
                 />
               </div>
               {/* Auto Start */}
-              <div className="mb-4 flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-500">Auto Start</label>
+              <div className="mb-4">
+                <label className="block mb-1 text-sm font-medium text-gray-500">Auto Start</label>
                 <Switch
                   checked={setting.isAutoStart}
                   onCheckedChange={(checked) => handleChange("isAutoStart", checked)}
                 />
               </div>
               {/* Notification Mode */}
-              <div className="mb-4">
+              <div>
                 <label className="block text-sm font-medium text-gray-500">Notification Mode</label>
-                <div className="flex space-x-4 mt-2">
-                  <label className="flex items-center space-x-2 text-gray-400 cursor-pointer">
+                <div className="flex w-full mt-2 border border-gray-500 rounded">
+                  {/* Sound Option */}
+                  <label className="flex items-center cursor-pointer w-full">
                     <input
                       type="radio"
                       name="notificationMode"
                       value="sound"
                       checked={setting.notificationMode === 'sound'}
                       onChange={(e) => handleChange('notificationMode', e.target.value)}
-                      className="text-blue-500"
+                      className="hidden"
                     />
-                    <span>Sound</span>
+                    <span
+                      className={`w-full h-8 flex items-center justify-center text-sm text-center cursor-pointer ${
+                        setting.notificationMode === 'sound'
+                          ? 'bg-gray-700 text-gray-400'
+                          : 'bg-gray-800 text-gray-600 hover:bg-gray-700 hover:text-gray-400'
+                      }`}
+                    >
+                      Sound
+                    </span>
                   </label>
-                  <label className="flex items-center space-x-2 text-gray-400 cursor-pointer">
+                  
+                  {/* Desktop Option */}
+                  <label className="flex items-center cursor-pointer w-full">
                     <input
                       type="radio"
                       name="notificationMode"
                       value="desktop"
                       checked={setting.notificationMode === 'desktop'}
                       onChange={(e) => handleChange('notificationMode', e.target.value)}
-                      className="text-blue-500"
+                      className="hidden"
                     />
-                    <span>Desktop</span>
+                    <span
+                      className={`w-full h-8 flex items-center justify-center text-sm text-center cursor-pointer ${
+                        setting.notificationMode === 'desktop'
+                          ? 'bg-gray-700 text-gray-400'
+                          : 'bg-gray-800 text-gray-600 hover:bg-gray-700 hover:text-gray-400'
+                      }`}
+                    >
+                      Desktop
+                    </span>
                   </label>
                 </div>
               </div>
