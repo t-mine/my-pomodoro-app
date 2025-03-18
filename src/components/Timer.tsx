@@ -21,8 +21,8 @@ interface PomodoroState {
 }
 
 interface SettingsState {
-  workDuration: number;
-  breakDuration: number;
+  workDurationMinutes: number;
+  breakDurationMinutes: number;
   goalPomodoros: number;
   isAutoStart: boolean;
   notificationMode: NotificationMode
@@ -31,8 +31,8 @@ interface SettingsState {
 const Timer: React.FC = () => {
 
   const [setting, setSetting] = useState<SettingsState>({
-    workDuration: 10,
-    breakDuration: 5,
+    workDurationMinutes: 0.1,
+    breakDurationMinutes: 0.05,
     goalPomodoros: 2,
     isAutoStart: false,
     notificationMode: 'sound'
@@ -45,23 +45,26 @@ const Timer: React.FC = () => {
   });
 
   useEffect(() => {
-    notification.requestNotificationPermission();
-  }, []);
+    if (setting.notificationMode === 'desktop') {
+      notification.requestNotificationPermission();
+    }
+    onReset();
+  }, [setting]);
 
   const { seconds, minutes, isRunning, start, pause, restart, resume } = useTimer({
-    expiryTimestamp: getExpiryDateFromDuration(getTimerDuration()),
+    expiryTimestamp: getExpiryDateFromDurationMinutes(getTimerDurationMinutes()),
     autoStart: false,
     onExpire: onExpire,
   });
 
-  function getTimerDuration () {
+  function getTimerDurationMinutes () : number {
     return pomodoroState.mode === "work"
-      ? setting.workDuration 
-      : setting.breakDuration
+      ? setting.workDurationMinutes 
+      : setting.breakDurationMinutes
   };
 
-  function getExpiryDateFromDuration (durationSeconds : number): Date {
-    return new Date(Date.now() + durationSeconds * 1000);
+  function getExpiryDateFromDurationMinutes (durationMinutes : number): Date {
+    return new Date(Date.now() + durationMinutes * 1000 * 60);
   };
 
   function onExpire () {
@@ -79,9 +82,9 @@ const Timer: React.FC = () => {
 
     // restart
     if (nextMode !== "done") {
-      const duration = isWorkMode ? setting.breakDuration : setting.workDuration;
+      const duration = isWorkMode ? setting.breakDurationMinutes : setting.workDurationMinutes;
       // restartはイベントハンドラ以外ではsetTimeoutを使用しないと動作しない
-      setTimeout(() => restart(getExpiryDateFromDuration(duration), setting.isAutoStart),1);
+      setTimeout(() => restart(getExpiryDateFromDurationMinutes(duration), setting.isAutoStart),1);
     }
 
     sendNotification(setting.notificationMode, nextMode);
@@ -122,7 +125,7 @@ const Timer: React.FC = () => {
 
   function onReset () {
     setPomodoroState((prevState)=>({...prevState, mode: "work", completedCount: 0, isPaused: false}));
-    restart(getExpiryDateFromDuration(setting.workDuration), false)
+    restart(getExpiryDateFromDurationMinutes(setting.workDurationMinutes), false)
   }
 
   function onPause () {
@@ -189,8 +192,8 @@ const Timer: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-500">Work Duration (minutes)</label>
                 <input
                   type="number"
-                  value={setting.workDuration}
-                  onChange={(e) => handleOptionChange("workDuration", Number(e.target.value))}
+                  value={setting.workDurationMinutes}
+                  onChange={(e) => handleOptionChange("workDurationMinutes", Number(e.target.value))}
                   className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -199,8 +202,8 @@ const Timer: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-500">Break Duration (minutes)</label>
                 <input
                   type="number"
-                  value={setting.breakDuration}
-                  onChange={(e) => handleOptionChange("breakDuration", Number(e.target.value))}
+                  value={setting.breakDurationMinutes}
+                  onChange={(e) => handleOptionChange("breakDurationMinutes", Number(e.target.value))}
                   className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
