@@ -9,6 +9,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch";
+import Radio from "@/components/ui/radio";
 
 type TimerMode = 'work' | 'break' | 'done';
 type NotificationMode = 'sound'  | 'desktop';
@@ -77,7 +78,7 @@ const Timer: React.FC = () => {
     }));
 
     // restart
-    if (nextMode != "done") {
+    if (nextMode !== "done") {
       const duration = isWorkMode ? setting.breakDuration : setting.workDuration;
       // restartはイベントハンドラ以外ではsetTimeoutを使用しないと動作しない
       setTimeout(() => restart(getExpiryDateFromDuration(duration), setting.isAutoStart),1);
@@ -140,9 +141,14 @@ const Timer: React.FC = () => {
     return `${mm}:${ss}`;
   };
 
-  function handleChange (key: keyof SettingsState, value: number | boolean | string) {
+  function handleOptionChange (key: keyof SettingsState, value: number | boolean | string) {
     setSetting((prev) => ({ ...prev, [key]: value }));
   };
+
+  const notificationModeOptions = [
+    { value: 'sound', label: 'Sound' },
+    { value: 'desktop', label: 'Desktop' },
+  ];
 
   return (
     <div className="h-screen w-screen flex flex-col justify-center items-center bg-gray-800">
@@ -184,7 +190,7 @@ const Timer: React.FC = () => {
                 <input
                   type="number"
                   value={setting.workDuration}
-                  onChange={(e) => handleChange("workDuration", Number(e.target.value))}
+                  onChange={(e) => handleOptionChange("workDuration", Number(e.target.value))}
                   className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -194,7 +200,7 @@ const Timer: React.FC = () => {
                 <input
                   type="number"
                   value={setting.breakDuration}
-                  onChange={(e) => handleChange("breakDuration", Number(e.target.value))}
+                  onChange={(e) => handleOptionChange("breakDuration", Number(e.target.value))}
                   className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -204,7 +210,7 @@ const Timer: React.FC = () => {
                 <input
                   type="number"
                   value={setting.goalPomodoros}
-                  onChange={(e) => handleChange("goalPomodoros", Number(e.target.value))}
+                  onChange={(e) => handleOptionChange("goalPomodoros", Number(e.target.value))}
                   className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -213,55 +219,18 @@ const Timer: React.FC = () => {
                 <label className="block mb-1 text-sm font-medium text-gray-500">Auto Start</label>
                 <Switch
                   checked={setting.isAutoStart}
-                  onCheckedChange={(checked) => handleChange("isAutoStart", checked)}
+                  onCheckedChange={(checked) => handleOptionChange("isAutoStart", checked)}
                 />
               </div>
               {/* Notification Mode */}
               <div>
                 <label className="block text-sm font-medium text-gray-500">Notification Mode</label>
-                <div className="flex w-full mt-2 border border-gray-500 rounded">
-                  {/* Sound Option */}
-                  <label className="flex items-center cursor-pointer w-full">
-                    <input
-                      type="radio"
-                      name="notificationMode"
-                      value="sound"
-                      checked={setting.notificationMode === 'sound'}
-                      onChange={(e) => handleChange('notificationMode', e.target.value)}
-                      className="hidden"
-                    />
-                    <span
-                      className={`w-full h-8 flex items-center justify-center text-sm text-center cursor-pointer ${
-                        setting.notificationMode === 'sound'
-                          ? 'bg-gray-700 text-gray-400'
-                          : 'bg-gray-800 text-gray-600 hover:bg-gray-700 hover:text-gray-400'
-                      }`}
-                    >
-                      Sound
-                    </span>
-                  </label>
-                  
-                  {/* Desktop Option */}
-                  <label className="flex items-center cursor-pointer w-full">
-                    <input
-                      type="radio"
-                      name="notificationMode"
-                      value="desktop"
-                      checked={setting.notificationMode === 'desktop'}
-                      onChange={(e) => handleChange('notificationMode', e.target.value)}
-                      className="hidden"
-                    />
-                    <span
-                      className={`w-full h-8 flex items-center justify-center text-sm text-center cursor-pointer ${
-                        setting.notificationMode === 'desktop'
-                          ? 'bg-gray-700 text-gray-400'
-                          : 'bg-gray-800 text-gray-600 hover:bg-gray-700 hover:text-gray-400'
-                      }`}
-                    >
-                      Desktop
-                    </span>
-                  </label>
-                </div>
+                <Radio
+                  name="notificationMode"
+                  selectedValue={setting.notificationMode}
+                  onChange={e => handleOptionChange("notificationMode", e.target.value)}
+                  options={notificationModeOptions}
+                />
               </div>
             </div>
           </DialogContent>
