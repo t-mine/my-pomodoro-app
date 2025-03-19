@@ -45,9 +45,21 @@ const Timer: React.FC = () => {
   });
 
   useEffect(() => {
+    // 設定をlocalStorageから読み込む
+    const savedSettings = localStorage.getItem('pomodoro-settings');
+    if (savedSettings) {
+      setSetting(JSON.parse(savedSettings));
+    }
+  }, []);
+
+  useEffect(() => {
+    // 設定をlocalStorageに保存する
+    localStorage.setItem('pomodoro-settings', JSON.stringify(setting));
+    // 通知許可
     if (setting.notificationMode === 'desktop') {
       notification.requestNotificationPermission();
     }
+    // Timerをリセットする
     onReset();
   }, [setting]);
 
