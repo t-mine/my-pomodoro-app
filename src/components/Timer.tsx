@@ -31,9 +31,9 @@ interface SettingsState {
 const Timer: React.FC = () => {
 
   const [setting, setSetting] = useState<SettingsState>({
-    workDurationMinutes: 0.1,
-    breakDurationMinutes: 0.05,
-    goalPomodoros: 2,
+    workDurationMinutes: 25,
+    breakDurationMinutes: 5,
+    goalPomodoros: 4,
     isAutoStart: false,
     notificationMode: 'sound'
   });
