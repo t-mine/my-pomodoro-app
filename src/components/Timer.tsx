@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTimer } from 'react-timer-hook';
-import * as notification from '../features/notification/notification'; 
+import * as notification from '../features/notification/notification';
+import * as bgm from '../features/bgm/bgm'; 
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,7 @@ import Radio from "@/components/ui/radio";
 
 type TimerMode = 'work' | 'break' | 'done';
 type NotificationMode = 'sound'  | 'desktop';
+type BgmMode = 'off' | 'white' | 'pink' | 'brown';
 
 interface PomodoroState {
   mode: TimerMode;
@@ -25,7 +27,8 @@ interface SettingsState {
   breakDurationMinutes: number;
   goalPomodoros: number;
   isAutoStart: boolean;
-  notificationMode: NotificationMode
+  notificationMode: NotificationMode;
+  bgm: BgmMode;
 }
 
 const Timer: React.FC = () => {
@@ -35,7 +38,8 @@ const Timer: React.FC = () => {
     breakDurationMinutes: 5,
     goalPomodoros: 4,
     isAutoStart: false,
-    notificationMode: 'sound'
+    notificationMode: 'sound',
+    bgm: 'off'
   });
 
   const [pomodoroState, setPomodoroState] = useState<PomodoroState>({
@@ -135,6 +139,11 @@ const Timer: React.FC = () => {
     }
   }
 
+  function handleStart () {
+    bgm.playSound(setting.bgm);
+    start();
+  }
+
   function onReset () {
     setPomodoroState((prevState)=>({...prevState, mode: "work", completedCount: 0, isPaused: false}));
     restart(getExpiryDateFromDurationMinutes(setting.workDurationMinutes), false)
@@ -165,6 +174,13 @@ const Timer: React.FC = () => {
     { value: 'desktop', label: 'Desktop' },
   ];
 
+  const bgmModeOptions = [
+    { value: 'off', label: 'Off' },
+    { value: 'white', label: 'White' },
+    { value: 'pink', label: 'Pink' },
+    { value: 'brown', label: 'Brown' },
+  ];
+
   return (
     <div className="h-screen w-screen flex flex-col justify-center items-center bg-gray-800">
       <div className="text-center">
@@ -174,7 +190,7 @@ const Timer: React.FC = () => {
         <div className="space-x-2">
           {/* resume button / start button / stop button */}
           {!isRunning ? (
-            <button onClick={pomodoroState.isPaused ? onResume : start} 
+            <button onClick={pomodoroState.isPaused ? onResume : handleStart} 
               className="bg-teal-700 text-white w-[7.5rem] px-4 py-2 rounded disabled:bg-gray-600 disabled:cursor-not-allowed" 
               disabled={pomodoroState.mode === "done"}>
               {pomodoroState.isPaused ? "Resume" : "Start"}
@@ -238,13 +254,23 @@ const Timer: React.FC = () => {
                 />
               </div>
               {/* Notification Mode */}
-              <div>
-                <label className="block text-sm font-medium text-gray-500">Notification Mode</label>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">Notification</label>
                 <Radio
                   name="notificationMode"
                   selectedValue={setting.notificationMode}
                   onChange={e => handleOptionChange("notificationMode", e.target.value)}
                   options={notificationModeOptions}
+                />
+              </div>
+              {/* Bgm */}
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Bgm</label>
+                <Radio
+                  name="bgmMode"
+                  selectedValue={setting.bgm}
+                  onChange={e => handleOptionChange("bgm", e.target.value)}
+                  options={bgmModeOptions}
                 />
               </div>
             </div>
