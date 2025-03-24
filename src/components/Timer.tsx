@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTimer } from 'react-timer-hook';
-import * as notification from '../features/notification/notification'; 
+import * as notification from '../features/notification/notification';
+import * as bgm from '../features/bgm/bgm'; 
 import {
   Dialog,
   DialogContent,
@@ -10,9 +11,6 @@ import {
 } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch";
 import Radio from "@/components/ui/radio";
-
-type TimerMode = 'work' | 'break' | 'done';
-type NotificationMode = 'sound'  | 'desktop';
 
 interface PomodoroState {
   mode: TimerMode;
@@ -25,7 +23,8 @@ interface SettingsState {
   breakDurationMinutes: number;
   goalPomodoros: number;
   isAutoStart: boolean;
-  notificationMode: NotificationMode
+  notificationMode: NotificationMode;
+  bgm: BgmMode;
 }
 
 const Timer: React.FC = () => {
@@ -35,7 +34,8 @@ const Timer: React.FC = () => {
     breakDurationMinutes: 5,
     goalPomodoros: 4,
     isAutoStart: false,
-    notificationMode: 'sound'
+    notificationMode: 'sound',
+    bgm: 'off'
   });
 
   const [pomodoroState, setPomodoroState] = useState<PomodoroState>({
@@ -63,6 +63,7 @@ const Timer: React.FC = () => {
     onReset();
   }, [setting]);
 
+  // useTimer
   const { seconds, minutes, isRunning, start, pause, restart, resume } = useTimer({
     expiryTimestamp: getExpiryDateFromDurationMinutes(getTimerDurationMinutes()),
     autoStart: false,
@@ -79,6 +80,7 @@ const Timer: React.FC = () => {
     return new Date(Date.now() + durationMinutes * 1000 * 60);
   };
 
+  // onExpire
   function onExpire () {
     const isWorkMode = pomodoroState.mode === "work";
     const completedCount = isWorkMode ? pomodoroState.completedCount + 1 : pomodoroState.completedCount;
@@ -92,60 +94,52 @@ const Timer: React.FC = () => {
       completedCount
     }));
 
-    // restart
-    if (nextMode !== "done") {
-      const duration = isWorkMode ? setting.breakDurationMinutes : setting.workDurationMinutes;
-      // restartはイベントハンドラ以外ではsetTimeoutを使用しないと動作しない
-      setTimeout(() => restart(getExpiryDateFromDurationMinutes(duration), setting.isAutoStart),1);
+    if (setting.isAutoStart && nextMode === "work")
+    {
+      bgm.playSound(setting.bgm);
+    } else {
+      bgm.stopSound();
     }
 
-    sendNotification(setting.notificationMode, nextMode);
+    if (nextMode !== "done") {
+      // restartする
+      // ※restartはイベントハンドラ以外ではsetTimeoutを使用しないと動作しない
+      const duration = isWorkMode ? setting.breakDurationMinutes : setting.workDurationMinutes;
+      setTimeout(() => 
+        restart(
+          // restart時のTimerの時間
+          getExpiryDateFromDurationMinutes(duration), 
+          // isAutoStart
+          setting.isAutoStart
+        )
+      , 1);
+    }
+
+    notification.sendNotificationByMode(setting.notificationMode, nextMode);
   };
 
-  function sendNotification(notificationMode: NotificationMode, timerMode: TimerMode)
-  {
-    switch(notificationMode)
-    {
-      case 'sound':
-        switch(timerMode) {
-          case "work":
-            notification.playSound();
-            break;
-          case "break":
-            notification.playSound();
-            break;
-          case "done":
-            notification.playSound();
-            break;
-        }
-        break;
-      case 'desktop':
-        switch(timerMode) {
-          case "work":
-            notification.sendNotification("pomodoro timer", "end breaking");
-            break;
-          case "break":
-            notification.sendNotification("pomodoro timer", "end working");
-            break;
-          case "done":
-            notification.sendNotification("pomodoro timer", "complete!");
-            break;
-        }
-        break;
+  // 作業開始 or 休憩開始
+  function handleStart () {
+    if(pomodoroState.mode === 'work') {
+      bgm.playSound(setting.bgm);
     }
+    start();
   }
 
   function onReset () {
+    bgm.stopSound();
     setPomodoroState((prevState)=>({...prevState, mode: "work", completedCount: 0, isPaused: false}));
     restart(getExpiryDateFromDurationMinutes(setting.workDurationMinutes), false)
   }
 
   function onPause () {
+    bgm.stopSound();
     setPomodoroState((prevState) => ({ ...prevState, isPaused: true }));
     pause();
   }
 
   function onResume () {
+    bgm.playSound(setting.bgm);
     setPomodoroState((prevState) => ({ ...prevState, isPaused: false }));
     resume();
   }
@@ -165,18 +159,27 @@ const Timer: React.FC = () => {
     { value: 'desktop', label: 'Desktop' },
   ];
 
+  const bgmModeOptions = [
+    { value: 'off', label: 'Off' },
+    { value: 'white', label: 'White' },
+    { value: 'pink', label: 'Pink' },
+    { value: 'brown', label: 'Brown' },
+  ];
+
   return (
     <div className="h-screen w-screen flex flex-col justify-center items-center bg-gray-800">
       <div className="text-center">
-        {/* time */}
+        {/* Time */}
         <div className="text-8xl font-bold mb-4 text-white">{formatTime(minutes, seconds)}</div>
-        {/* buttons */}
+        {/* Buttons */}
         <div className="space-x-2">
-          {/* resume button / start button / stop button */}
+          {/* Resume button or Start button / Stop button */}
           {!isRunning ? (
-            <button onClick={pomodoroState.isPaused ? onResume : start} 
+            <button 
+              onClick={pomodoroState.isPaused ? onResume : handleStart} 
               className="bg-teal-700 text-white w-[7.5rem] px-4 py-2 rounded disabled:bg-gray-600 disabled:cursor-not-allowed" 
-              disabled={pomodoroState.mode === "done"}>
+              disabled={pomodoroState.mode === "done"}
+            >
               {pomodoroState.isPaused ? "Resume" : "Start"}
             </button>
           ) : (
@@ -184,14 +187,14 @@ const Timer: React.FC = () => {
               Stop
             </button>
           )}
-          {/* reset button */}
+          {/* Reset button */}
           <button onClick={onReset} className="bg-rose-700 text-white w-[7.5rem] px-4 py-2 rounded">
             Reset
           </button>
         </div>
-        {/* completed pomodoros */}
+        {/* Completed pomodoros */}
         <div className="mt-4 text-white">Completed pomodoros : {pomodoroState.completedCount} / {setting.goalPomodoros}</div>
-        {/* options */}
+        {/* Options */}
         <Dialog>
           <DialogTrigger className="mt-12 bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 w-[7.5rem] px-4 py-2 rounded">Options</DialogTrigger>
           <DialogContent className="bg-gray-800 border-none">
@@ -238,13 +241,23 @@ const Timer: React.FC = () => {
                 />
               </div>
               {/* Notification Mode */}
-              <div>
-                <label className="block text-sm font-medium text-gray-500">Notification Mode</label>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">Notification</label>
                 <Radio
                   name="notificationMode"
                   selectedValue={setting.notificationMode}
                   onChange={e => handleOptionChange("notificationMode", e.target.value)}
                   options={notificationModeOptions}
+                />
+              </div>
+              {/* Bgm */}
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Bgm</label>
+                <Radio
+                  name="bgmMode"
+                  selectedValue={setting.bgm}
+                  onChange={e => handleOptionChange("bgm", e.target.value)}
+                  options={bgmModeOptions}
                 />
               </div>
             </div>

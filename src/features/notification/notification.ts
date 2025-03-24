@@ -18,6 +18,38 @@
   };
 
   export function playSound () {
-    const audio = new Audio('/notification-sound.mp3');
+    const audio = new Audio('/sounds/notification-sound.mp3');
+    audio.volume = 0.07;
     audio.play();
   };
+
+  export function sendNotificationByMode(notificationMode: NotificationMode, timerMode: TimerMode) {
+    switch(notificationMode) {
+      case 'sound':
+        switch(timerMode) {
+          case "work":
+            playSound();
+            break;
+          case "break":
+            playSound();
+            break;
+          case "done":
+            playSound();
+            break;
+        }
+        break;
+      case 'desktop':
+        switch(timerMode) {
+          case "work":
+            sendNotification("pomodoro timer", "end breaking");
+            break;
+          case "break":
+            sendNotification("pomodoro timer", "end working");
+            break;
+          case "done":
+            sendNotification("pomodoro timer", "complete!");
+            break;
+        }
+        break;
+    }
+  }
