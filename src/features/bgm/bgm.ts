@@ -17,6 +17,7 @@ export function playSound(bgmMode: BgmMode) {
     }
     audio = new Audio(src);
     audio.loop = true;
+    audio.volume = 0.05;
   }
   audio.play();
 }
