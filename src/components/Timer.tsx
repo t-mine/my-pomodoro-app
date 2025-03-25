@@ -166,9 +166,15 @@ const Timer: React.FC = () => {
     { value: 'brown', label: 'Brown' },
   ];
 
+  const bgColor = pomodoroState.mode === 'work' && isRunning ? "bg-gray-700" : "bg-gray-800";
+
   return (
-    <div className="h-screen w-screen flex flex-col justify-center items-center bg-gray-800">
+    <div className={`h-screen w-screen flex flex-col justify-center items-center ${bgColor}`}>
       <div className="text-center">
+        {pomodoroState.mode === 'work'
+            ? (<div className='text-white'>Work time</div>)
+            : (<div className='text-white'>Break time</div>)
+        }
         {/* Time */}
         <div className="text-8xl font-bold mb-4 text-white">{formatTime(minutes, seconds)}</div>
         {/* Buttons */}
