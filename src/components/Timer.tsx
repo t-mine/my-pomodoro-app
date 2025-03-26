@@ -22,7 +22,7 @@ interface SettingsState {
   workDurationMinutes: number;
   breakDurationMinutes: number;
   goalPomodoros: number;
-  isAutoStart: boolean;
+  autoStart: 'on' | 'off';
   notificationMode: NotificationMode;
   bgm: BgmMode;
 }
@@ -33,7 +33,7 @@ const Timer: React.FC = () => {
     workDurationMinutes: 25,
     breakDurationMinutes: 5,
     goalPomodoros: 4,
-    isAutoStart: false,
+    autoStart: 'off',
     notificationMode: 'sound',
     bgm: 'off'
   });
@@ -94,7 +94,7 @@ const Timer: React.FC = () => {
       completedCount
     }));
 
-    if (setting.isAutoStart && nextMode === "work")
+    if (setting.autoStart === "on" && nextMode === "work")
     {
       bgm.playSound(setting.bgm);
     } else {
@@ -110,7 +110,7 @@ const Timer: React.FC = () => {
           // restart時のTimerの時間
           getExpiryDateFromDurationMinutes(duration), 
           // isAutoStart
-          setting.isAutoStart
+          setting.autoStart === "on"
         )
       , 1);
     }
@@ -154,13 +154,38 @@ const Timer: React.FC = () => {
     setSetting((prev) => ({ ...prev, [key]: value }));
   };
 
+  const workDurationOptions = [
+    { value: 25, label: '25' },
+    { value: 50, label: '50' },
+    { value: 90, label: '90' },
+  ];
+
+  const breakDurationOptions = [
+    { value: 5, label: '5' },
+    { value: 10, label: '10' },
+    { value: 15, label: '15' },
+  ];
+
+  const goalPomodorosOptions = [
+    { value: 1, label: '1' },
+    { value: 2, label: '2' },
+    { value: 3, label: '3' },
+    { value: 4, label: '4' },
+    { value: 5, label: '5' },
+  ];
+
+  const autoStartOptions = [
+    { value: 'off', label: 'OFF' },
+    { value: 'on', label: 'ON' },
+  ];
+
   const notificationModeOptions = [
     { value: 'sound', label: 'Sound' },
     { value: 'desktop', label: 'Desktop' },
   ];
 
   const bgmModeOptions = [
-    { value: 'off', label: 'Off' },
+    { value: 'off', label: 'OFF' },
     { value: 'white', label: 'White' },
     { value: 'pink', label: 'Pink' },
     { value: 'brown', label: 'Brown' },
@@ -211,39 +236,41 @@ const Timer: React.FC = () => {
               {/* Work Duration */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-500">Work Duration (minutes)</label>
-                <input
-                  type="number"
-                  value={setting.workDurationMinutes}
-                  onChange={(e) => handleOptionChange("workDurationMinutes", Number(e.target.value))}
-                  className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                <Radio
+                  name="workDuration"
+                  selectedValue={setting.workDurationMinutes}
+                  onChange={e => handleOptionChange("workDurationMinutes", Number(e.target.value))}
+                  options={workDurationOptions}
                 />
               </div>
               {/* Break Duration */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-500">Break Duration (minutes)</label>
-                <input
-                  type="number"
-                  value={setting.breakDurationMinutes}
-                  onChange={(e) => handleOptionChange("breakDurationMinutes", Number(e.target.value))}
-                  className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                <Radio
+                  name="breakDuration"
+                  selectedValue={setting.breakDurationMinutes}
+                  onChange={e => handleOptionChange("breakDurationMinutes", Number(e.target.value))}
+                  options={breakDurationOptions}
                 />
               </div>
               {/* Goal Pomodoros */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-500">Goal Pomodoros</label>
-                <input
-                  type="number"
-                  value={setting.goalPomodoros}
-                  onChange={(e) => handleOptionChange("goalPomodoros", Number(e.target.value))}
-                  className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                <Radio
+                  name="goalPomodoros"
+                  selectedValue={setting.goalPomodoros}
+                  onChange={e => handleOptionChange("goalPomodoros", Number(e.target.value))}
+                  options={goalPomodorosOptions}
                 />
               </div>
               {/* Auto Start */}
               <div className="mb-4">
-                <label className="block mb-1 text-sm font-medium text-gray-500">Auto Start</label>
-                <Switch
-                  checked={setting.isAutoStart}
-                  onCheckedChange={(checked) => handleOptionChange("isAutoStart", checked)}
+                <label className="block text-sm font-medium text-gray-500">Auto Start</label>
+                <Radio
+                  name="autoStart"
+                  selectedValue={setting.autoStart}
+                  onChange={e => handleOptionChange("autoStart", e.target.value)}
+                  options={autoStartOptions}
                 />
               </div>
               {/* Notification Mode */}

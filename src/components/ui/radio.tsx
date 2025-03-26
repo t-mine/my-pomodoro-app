@@ -2,9 +2,9 @@ import React, { ChangeEvent } from 'react';
 
 interface RadioProps {
   name: string;
-  selectedValue: string;
+  selectedValue: string | number;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;  // ChangeEvent を使う
-  options: { value: string; label: string }[];
+  options: { value: string | number; label: string }[];
 }
 
 const Radio: React.FC<RadioProps> = ({
