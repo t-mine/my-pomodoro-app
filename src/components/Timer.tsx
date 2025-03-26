@@ -9,7 +9,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Switch } from "@/components/ui/switch";
 import Radio from "@/components/ui/radio";
 
 interface PomodoroState {
