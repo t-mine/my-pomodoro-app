@@ -15,7 +15,7 @@ const Radio: React.FC<RadioProps> = ({
 }) => {
   return (
     <div className="flex w-full mt-2 border border-gray-500 rounded">
-      {options.map((option) => (
+      {options.map((option, index) => (
         <label key={option.value} className="flex items-center cursor-pointer w-full">
           <input
             type="radio"
@@ -30,7 +30,7 @@ const Radio: React.FC<RadioProps> = ({
               selectedValue === option.value
                 ? 'bg-gray-700 text-gray-400'
                 : 'bg-gray-800 text-gray-600 hover:bg-gray-700 hover:text-gray-400'
-            }`}
+            } ${index === 0 ? 'rounded-l' : ''} ${index === options.length - 1 ? 'rounded-r' : ''}`}
           >
             {option.label}
           </span>
