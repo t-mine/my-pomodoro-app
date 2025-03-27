@@ -196,7 +196,7 @@ const Timer: React.FC = () => {
     <div className={`h-screen w-screen flex flex-col justify-center items-center ${bgColor}`}>
       <div className="text-center">
         {pomodoroState.mode === 'work'
-            ? (<div className='text-white'>Work time</div>)
+            ? (<div className='text-white'>Focus time</div>)
             : (<div className='text-white'>Break time</div>)
         }
         {/* Time */}
@@ -223,7 +223,7 @@ const Timer: React.FC = () => {
           </button>
         </div>
         {/* Completed pomodoros */}
-        <div className="mt-4 text-white">Completed pomodoros : {pomodoroState.completedCount} / {setting.goalPomodoros}</div>
+        <div className="mt-4 text-white">{pomodoroState.completedCount} / {setting.goalPomodoros}</div>
         {/* Options */}
         <Dialog>
           <DialogTrigger className="mt-12 bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 w-[7.5rem] px-4 py-2 rounded">Options</DialogTrigger>
