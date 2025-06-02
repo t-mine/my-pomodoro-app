@@ -47,20 +47,13 @@ const Timer: React.FC = () => {
     // 設定をlocalStorageから読み込む
     const savedSettings = localStorage.getItem('pomodoro-settings');
     if (savedSettings) {
-      setSetting(JSON.parse(savedSettings));
+      const parsedSettings = JSON.parse(savedSettings) as SettingsState;
+      // 設定を更新する
+      setSetting(parsedSettings);
+      // ローカルストレージから取得した時間でTimerをリセットする
+      onReset(parsedSettings.workDurationMinutes);
     }
   }, []);
-
-  useEffect(() => {
-    // 設定をlocalStorageに保存する
-    localStorage.setItem('pomodoro-settings', JSON.stringify(setting));
-    // 通知許可
-    if (setting.notificationMode === 'desktop') {
-      notification.requestNotificationPermission();
-    }
-    // Timerをリセットする
-    onReset();
-  }, [setting]);
 
   // useTimer
   const { seconds, minutes, isRunning, start, pause, restart, resume } = useTimer({
@@ -125,10 +118,10 @@ const Timer: React.FC = () => {
     start();
   }
 
-  function onReset () {
+  function onReset (workDurationMinutes: number = setting.workDurationMinutes) {
     bgm.stopSound();
     setPomodoroState((prevState)=>({...prevState, mode: "work", completedCount: 0, isPaused: false}));
-    restart(getExpiryDateFromDurationMinutes(setting.workDurationMinutes), false)
+    restart(getExpiryDateFromDurationMinutes(workDurationMinutes), false)
   }
 
   function onPause () {
@@ -150,7 +143,17 @@ const Timer: React.FC = () => {
   };
 
   function handleOptionChange (key: keyof SettingsState, value: number | boolean | string) {
-    setSetting((prev) => ({ ...prev, [key]: value }));
+    const newSetting = { ...setting, [key]: value };
+    // 設定をlocalStorageに保存する
+    localStorage.setItem('pomodoro-settings', JSON.stringify(newSetting));
+    // 通知許可
+    if (newSetting.notificationMode === 'desktop') {
+      notification.requestNotificationPermission();
+    }
+    // 設定を更新する
+    setSetting(newSetting);
+    // Timerをリセットする
+    onReset(newSetting.workDurationMinutes);
   };
 
   const workDurationOptions = [
@@ -218,7 +221,7 @@ const Timer: React.FC = () => {
             </button>
           )}
           {/* Reset button */}
-          <button onClick={onReset} className="bg-rose-700 text-white w-[7.5rem] px-4 py-2 rounded">
+          <button onClick={()=>onReset()} className="bg-rose-700 text-white w-[7.5rem] px-4 py-2 rounded">
             Reset
           </button>
         </div>
